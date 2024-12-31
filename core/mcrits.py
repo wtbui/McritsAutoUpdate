@@ -1,2 +1,6 @@
+from pkg.dclient.dclient import *
+import os
+
 def start():
-   print("start") 
+   link = fetch_update(os.environ['UKEY'])
+   print(link)
