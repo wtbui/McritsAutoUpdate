@@ -14,6 +14,7 @@ CRIT_NAMES = [CRIT_NAMES_BF, CRIT_NAMES_PG]
 IMG_FILE_DIR = "example_images/"
 BUILD_DIR = "build"
 
+# Functions for Controlling Miscrits Window
 class McritsClient:
     def __init__(self, w, h, window, rect):
         self.w = w
@@ -22,6 +23,7 @@ class McritsClient:
         self.window = window
         self.rect = rect
 
+    # < BATTLE MENU >
     def first_attack(self):
         self.window.wrapper_object().click_input(coords=(self.w // 3, (self.h // 20) * 18))
     
@@ -34,11 +36,11 @@ class McritsClient:
     def last_attack(self):
         self.window.wrapper_object().click_input(coords=((self.w // 9) * 6, (self.h // 20) * 18))
 
-    def search(self):
-        self.window.wrapper_object().click_input(coords=(self.center[0], self.center[1]))
+    def scroll_right(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 31) * 23, (self.h // 22) * 20))
 
-    def heal(self):
-        self.window.wrapper_object().click_input(coords=((self.w // 7) * 6, (self.h // 20) * 2))
+    def scroll_left(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 30) * 8, (self.h // 22) * 20))
 
     def capture(self):
         self.window.wrapper_object().click_input(coords=(self.w // 2, (self.h // 13) * 2))
@@ -46,20 +48,52 @@ class McritsClient:
     def capture_again(self):
         self.window.wrapper_object().click_input(coords=((self.w // 19) * 9, (self.h // 20) * 12))
 
-    def keep(self):
-        self.window.wrapper_object().click_input(coords=((self.w // 17) * 9, (self.h // 20) * 12))
-
-    def scroll_right(self):
-        self.window.wrapper_object().click_input(coords=((self.w // 31) * 23, (self.h // 22) * 20))
-
-    def scroll_left(self):
-        self.window.wrapper_object().click_input(coords=((self.w // 30) * 8, (self.h // 22) * 20))
-
     def skip(self):
         self.window.wrapper_object().click_input(coords=((self.w // 20) * 9, (self.h // 20) * 12))
 
     def exit_battle(self):
         self.window.wrapper_object().click_input(coords=(self.w // 2, (self.h // 20) * 16))
+    # ... Battle
+
+    # < OPEN WORLD > 
+    def search(self):
+        self.window.wrapper_object().click_input(coords=(self.center[0], self.center[1]))
+
+    def heal(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 7) * 6, (self.h // 20) * 2))
+
+    def keep(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 17) * 9, (self.h // 20) * 12))
+    # ... Open World
+
+    # < LEVEL UP MENU > 
+    def level_open(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 7) * 2, (self.h // 20) * 2))
+
+    def level_plat_train(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 17) * 7, (self.h // 21) * 19))
+
+    def level_train(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 17) * 8, (self.h // 21) * 4))
+
+    def level_continue(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 17) * 9, (self.h // 21) * 19))
+
+    def level_ability_continue(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 15) * 7, (self.h // 20) * 13))
+
+    def level_exit(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 26) * 18, (self.h // 25) * 4))
+
+    def level_select_first_miscrit(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 7) * 2, (self.h // 20) * 5))
+
+    def level_select_second_miscrit(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 7) * 2, (self.h // 20) * 6))
+    
+    def level_select_third_miscrit(self):
+        self.window.wrapper_object().click_input(coords=((self.w // 7) * 2, (self.h // 20) * 7))
+    # .. Level Up Menu
 
 def run_farm(args):
     crit_names = CRIT_NAMES[args.farm - 1]
@@ -94,7 +128,7 @@ def run_farm(args):
             mc_client.search() 
 
             time.sleep(4.5)
-            handle_battle(mc_client, reader, crit_names)
+            handle_battle(mc_client, reader, crit_names, args.level)
             time.sleep(3)
 
     except KeyboardInterrupt:
@@ -102,11 +136,12 @@ def run_farm(args):
 
     return 
 
-def handle_battle(mc_client, reader, crit_names):
+def handle_battle(mc_client, reader, crit_names, level):
     misc_cnt = 0
     curr_misc = ['NULL']
     capture_attempt = False
 
+    # < HANDLE BATTLE LOGIC >
     while len(curr_misc):
         curr_misc = identify_miscrit(mc_client, reader) 
         if not len(curr_misc):
@@ -140,23 +175,61 @@ def handle_battle(mc_client, reader, crit_names):
     
     time.sleep(1.2)
     
+    # < BATTLE FINISHED >
+    level_menu_data = []
+
+    if level:
+        time.sleep(1.5)
+        sub_img = capture_section(mc_client, 0.25, 0.25, 0.4, 0.4)
+
+        sub_img.save(os.path.join(BUILD_DIR, "crit_images", "level.jpg"))
+        level_menu_data = reader.readtext(os.path.join(BUILD_DIR, "crit_images", "level.jpg"), detail = 0)
+        logging.info("Level UP?: " + str(level_menu_data))
+
     logging.info("Exiting Battle")
     mc_client.exit_battle()
 
-    # Closes new miscrit dialogue
-    if not capture_attempt:
-        return
+    # Checks and closes new miscrit dialogue
     
-    time.sleep(2)
+    if capture_attempt:
+        time.sleep(1)
 
-    sub_img = capture_section(mc_client, 0.35, 0.35, 0.3, 0.3)
+        sub_img = capture_section(mc_client, 0.35, 0.35, 0.3, 0.3)
 
-    sub_img.save(os.path.join(BUILD_DIR, "crit_images", "new_misc.png"))
-    new_misc_data = reader.readtext(os.path.join(BUILD_DIR, "crit_images", "new_misc.png"), detail = 0)
+        sub_img.save(os.path.join(BUILD_DIR, "crit_images", "new_misc.png"))
+        new_misc_data = reader.readtext(os.path.join(BUILD_DIR, "crit_images", "new_misc.png"), detail = 0)
+
+        if 'New Miscrit' in new_misc_data:
+            logging.info("New Miscrit captured, closing dialogue")
+            mc_client.keep()
+
+            sub_img = capture_section(mc_client, 0.3, 0.3, 0.3, 0.3)
+
+    # < LEVELS UP IF NEEDED > 
+    if not level:
+        return 
     
-    if 'New Miscrit' in new_misc_data:
-        logging.info("New Miscrit captured, closing dialogue")
-        mc_client.keep()
+    level_ready = True
+    for s in level_menu_data:
+        if 'xp' in s.lower():
+            level_ready = False
+            break
+
+    if level_ready:
+        time.sleep(1.5)
+        mc_client.level_open()
+        time.sleep(0.2)
+        mc_client.level_select_second_miscrit()
+        time.sleep(0.2)
+        mc_client.level_train()
+        time.sleep(0.2)
+        mc_client.level_plat_train()
+        time.sleep(0.2)
+        mc_client.level_continue()
+        time.sleep(0.5)
+        mc_client.level_ability_continue()
+        time.sleep(0.2)
+        mc_client.level_exit()
 
 def capture_section(mc_client, left, top, width, height):
     # Check Miscrit

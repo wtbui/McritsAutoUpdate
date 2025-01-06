@@ -5,7 +5,8 @@ def setup_logging():
         level=logging.INFO,
         format='%(asctime)s:%(levelname)s: %(message)s',
         handlers=[
-            logging.FileHandler('mcrits.log'),  
-            logging.StreamHandler()             
+            # Specify mode='w' here instead of filemode in basicConfig
+            logging.FileHandler('mcrits.log', mode='w'),  
+            logging.StreamHandler()
         ]
     )

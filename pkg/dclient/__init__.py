@@ -1,1 +1,1 @@
-from .dclient import fetch_update
+# from .dclient import fetch_update
