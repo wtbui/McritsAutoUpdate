@@ -5,10 +5,12 @@ import time
 import re
 import logging
 
-
 # CONSTANTS
-CURR_CRIT_NAME = "Dark Poltergust" # Unused
-CRIT_NAMES = ['Peekly', 'Felis', 'Owlie']  
+CRIT_NAMES_PG = ['Peekly', 'Felis', 'Owlie']  
+CRIT_NAMES_BF = ['Shellbee', 'Squibee', 'Crickin', 'Steamguin']
+
+CRIT_NAMES = [CRIT_NAMES_BF, CRIT_NAMES_PG]
+
 IMG_FILE_DIR = "example_images/"
 BUILD_DIR = "build"
 
@@ -59,21 +61,12 @@ class McritsClient:
     def exit_battle(self):
         self.window.wrapper_object().click_input(coords=(self.w // 2, (self.h // 20) * 16))
 
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s:%(levelname)s: %(message)s',
-        handlers=[
-            logging.FileHandler('mcrits.log'),  
-            logging.StreamHandler()             
-        ]
-    )
+def run_farm(args):
+    crit_names = CRIT_NAMES[args.farm - 1]
 
-def run_farm():
     # Load text classifier
     reader = easyocr.Reader(['en'])
     mc_client = create_client("Miscrits (DEBUG)")
-    setup_logging()
 
     last_heal_time = time.time()
     last_search_time = time.time() - 30
@@ -101,7 +94,7 @@ def run_farm():
             mc_client.search() 
 
             time.sleep(4.5)
-            handle_battle(mc_client, reader)
+            handle_battle(mc_client, reader, crit_names)
             time.sleep(3)
 
     except KeyboardInterrupt:
@@ -109,7 +102,7 @@ def run_farm():
 
     return 
 
-def handle_battle(mc_client, reader):
+def handle_battle(mc_client, reader, crit_names):
     misc_cnt = 0
     curr_misc = ['NULL']
     capture_attempt = False
@@ -123,7 +116,7 @@ def handle_battle(mc_client, reader):
 
         logging.info("Found " + str(curr_misc))
         target = True
-        for crit in CRIT_NAMES:
+        for crit in crit_names:
             if crit in curr_misc:
                 target = False
 
